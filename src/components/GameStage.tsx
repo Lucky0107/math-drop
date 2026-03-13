@@ -96,10 +96,21 @@ export function GameStage({
             )}
 
             {/* Main equation area */}
-            <div className="flex-1 relative flex items-center justify-center px-4">
+            <div className="flex-1 relative flex flex-col items-center justify-center px-4 gap-4">
+                {/* Instruction text */}
+                <p className="text-sm text-slate-400 text-center">
+                    両辺に<span className="text-teal-300 font-bold">操作</span>を加えて
+                    <span className="text-emerald-400 font-bold">□</span>を独り立ちさせろ！
+                </p>
+
                 <div className={`w-full max-w-sm flex justify-center ${isShaking ? 'animate-shake' : ''}`}>
                     <EquationDisplay equation={activeEquation} isCorrectHit={isHitAnimating} />
                 </div>
+            </div>
+
+            {/* Action label */}
+            <div className="text-center pb-1">
+                <span className="text-xs text-slate-500 font-bold tracking-wider">▼ 操作を選べ！ ▼</span>
             </div>
 
             {/* Action Bar */}
