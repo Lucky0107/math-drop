@@ -99,8 +99,8 @@ export function GameStage({
             <div className="flex-1 relative flex flex-col items-center justify-center px-4 gap-4">
                 {/* Instruction text */}
                 <p className="text-sm text-slate-400 text-center">
-                    両辺に<span className="text-teal-300 font-bold">操作</span>を加えて
-                    <span className="text-emerald-400 font-bold">□</span>を独り立ちさせろ！
+                    両辺に<span className="text-teal-300 font-bold">操作</span>を加えて、
+                    じゃまな数字を消そう！
                 </p>
 
                 <div className={`w-full max-w-sm flex justify-center ${isShaking ? 'animate-shake' : ''}`}>

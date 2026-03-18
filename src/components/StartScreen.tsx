@@ -9,9 +9,9 @@ interface StartScreenProps {
 const MODE_INFO = {
     modeA: {
         emoji: '🔓',
-        title: '□を独り立ちさせろ！',
+        title: '□の正体をあばけ！',
         subtitle: '逆算・移項',
-        description: '式を変形して□を左辺に残せ',
+        description: 'じゃまな数字を消して□だけにしよう',
         gradient: 'from-teal-400 to-emerald-400',
         bg: 'bg-teal-500/15 border-teal-500/30',
         available: true,
