@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { GameMode } from '../App';
+import { AnimatedTutorial } from './AnimatedTutorial';
 
 interface StartScreenProps {
     onStart: (level: number, mode: GameMode) => void;
@@ -45,12 +46,15 @@ export function StartScreen({ onStart, maxUnlockedLevel }: StartScreenProps) {
     return (
         <div className="absolute inset-0 flex flex-col items-center p-6 z-10 overflow-y-auto">
             {/* Title */}
-            <div className="mt-8 mb-6 text-center">
+            <div className="mt-6 mb-4 text-center">
                 <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-emerald-300 to-cyan-400 animate-float tracking-tight">
                     算数トランスフォーマー
                 </h1>
                 <p className="text-sm text-slate-500 mt-1 tracking-wider">式変形バトル</p>
             </div>
+
+            {/* Visual Animated Tutorial */}
+            <AnimatedTutorial />
 
             {/* Mode Selector */}
             <div className="w-full max-w-sm mb-6">
