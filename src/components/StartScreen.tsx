@@ -44,7 +44,7 @@ export function StartScreen({ onStart, maxUnlockedLevel }: StartScreenProps) {
     const currentMode = MODE_INFO[selectedMode];
 
     return (
-        <div className="absolute inset-0 flex flex-col items-center p-6 z-10 overflow-y-auto">
+        <div className="flex flex-col items-center px-6 pb-8 z-10 min-h-full">
             {/* Title */}
             <div className="mt-6 mb-4 text-center">
                 <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-emerald-300 to-cyan-400 animate-float tracking-tight">

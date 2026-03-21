@@ -192,7 +192,8 @@ function App() {
 
   return (
     <div className="h-dvh flex items-center justify-center bg-slate-950 text-white overflow-hidden font-[Outfit] select-none">
-      <div className="w-full max-w-md h-full sm:h-[90vh] relative glass-panel sm:rounded-3xl flex flex-col overflow-hidden shadow-2xl border-slate-700/50">
+      <div className="w-full max-w-md h-full sm:h-[90vh] relative glass-panel sm:rounded-3xl flex flex-col shadow-2xl border-slate-700/50"
+           style={{ overflow: gameState === 'start' ? 'auto' : 'hidden' }}>
 
         {/* Background ambient glows */}
         <div className="absolute top-0 left-0 w-72 h-72 bg-teal-500/15 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
