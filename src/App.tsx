@@ -86,7 +86,7 @@ function App() {
     if (mode === 'modeA') {
       const newEq = generateEquationForLevel(selectedLevel);
       setActiveEquation(newEq);
-      const newChoices = generateActionChoices(newEq);
+      const newChoices = generateActionChoices(newEq, selectedLevel);
       setChoices(newChoices);
       setGameState('playing');
       // start hint timer after a tick
@@ -158,7 +158,7 @@ function App() {
               } else {
                 const nextEq = generateEquationForLevel(level);
                 setActiveEquation(nextEq);
-                const nextChoices = generateActionChoices(nextEq);
+                const nextChoices = generateActionChoices(nextEq, level);
                 setChoices(nextChoices);
                 setHintIndex(null);
                 setTimeout(() => startHintTimer(nextChoices, nextEq), 100);
@@ -168,7 +168,7 @@ function App() {
           } else {
             // More steps to go
             setActiveEquation(transformedEq);
-            const nextChoices = generateActionChoices(transformedEq);
+            const nextChoices = generateActionChoices(transformedEq, level);
             setChoices(nextChoices);
             setHintIndex(null);
             setTimeout(() => startHintTimer(nextChoices, transformedEq), 100);

@@ -106,6 +106,7 @@ export function checkSolution(eq: MathEquation, varValue: number): boolean {
 export interface MathAction {
     operator: Operator;
     operand: number;
+    isLeftHand?: boolean; // If true, represents "operand [operator] [target]" (e.g. 10 - X)
 }
 
 function getInverseOperator(op: Operator): Operator {
@@ -158,7 +159,33 @@ export function applyMathAction(eq: MathEquation, action: MathAction): MathEquat
         const staticLeft = tryEvaluateStatic(leftNode.left);
         const staticRight = tryEvaluateStatic(leftNode.right);
 
-        // Case 1: Structure is (variable_part) [op] (static_part)
+        // Case A: Action is a Left-Hand Operation (e.g., "10 -" applied to "10 - X = 6")
+        if (action.isLeftHand) {
+            // Check if left node is non-commutative subtraction or division with static on the left
+            if (staticLeft !== null && staticLeft === action.operand) {
+                if (leftNode.operator === action.operator && (leftNode.operator === '-' || leftNode.operator === '/')) {
+                    // For "A - X = B", applying "A -" gives "X = A - B"
+                    // For "A / X = B", applying "A /" gives "X = A / B"
+                    const newLeft = leftNode.right; // Peel outer A - or A /
+                    const newRight: BinOpNode = {
+                        type: 'binop',
+                        operator: action.operator, // '-' or '/'
+                        left: { type: 'number', value: action.operand },
+                        right: rightNode
+                    };
+                    const evaluatedRight = tryEvaluateStatic(newRight);
+                    return {
+                        left: newLeft,
+                        right: evaluatedRight !== null ? { type: 'number', value: evaluatedRight } : newRight
+                    };
+                }
+            }
+            return null;
+        }
+
+        // Case B: Action is a standard Right-Hand Operation (e.g., "- 3" applied to "X + 3 = 10")
+        
+        // Case B.1: Structure is (variable_part) [op] (static_part)
         // E.g. (□ * 2) + 3
         if (staticRight !== null && staticRight === action.operand) {
             if (getInverseOperator(leftNode.operator) === action.operator) {
@@ -178,7 +205,7 @@ export function applyMathAction(eq: MathEquation, action: MathAction): MathEquat
             }
         }
 
-        // Case 2: Structure is (static_part) [op] (variable_part)
+        // Case B.2: Structure is (static_part) [op] (variable_part)
         // E.g. 3 + (□ * 2)
         if (staticLeft !== null && staticLeft === action.operand) {
             // Addition and multiplication are commutative
@@ -197,11 +224,6 @@ export function applyMathAction(eq: MathEquation, action: MathAction): MathEquat
                     right: evaluatedRight !== null ? { type: 'number', value: evaluatedRight } : newRight
                 };
             }
-
-            // Subtraction (10 - □ = 4) -> (□ = 10 - 4)
-            // Let's hold off on complex subtraction/division where the variable is on the right of the operator
-            // for level 1-10 unless specifically requested, or we ensure the generator doesn't make these.
-            // Actually, we can just ensure Generator always puts the variable on the LEFT side of non-commutative operations.
         }
     }
 

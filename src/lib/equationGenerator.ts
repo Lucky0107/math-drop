@@ -1,4 +1,4 @@
-import { evaluateNode } from './mathEngine';
+import { evaluateNode, tryEvaluateStatic } from './mathEngine';
 import type { MathEquation, MathNode, NumberNode, BinOpNode, Operator, MathAction } from './mathEngine';
 
 // Random float between min and max
@@ -47,12 +47,12 @@ function generateTree(steps: number, level: number): MathEquation {
         const operand = randomInt(2, 10 + Math.floor(level / 1.5));
 
         // Create candidate node structure
-        // To ensure our applyMathAction works cleanly, we always put the variable/complex part on the left for non-commutative.
-        // For commutative (+, *), we can do either, but let's stick to left for simplicity in MVP, or mix it up gently.
-        const isReverseCommutative = (op === '+' || op === '*') && Math.random() > 0.5;
+        // Swap sides randomly (50% chance) to allow the variable/complex part to appear on either side,
+        // which naturally generates left-hand operator cases (e.g. 10 - X = 6 or 12 / X = 4).
+        const swapSides = Math.random() > 0.5;
 
-        const candidateLeft = isReverseCommutative ? { type: 'number', value: operand } as NumberNode : node;
-        const candidateRight = isReverseCommutative ? node : { type: 'number', value: operand } as NumberNode;
+        const candidateLeft = swapSides ? { type: 'number', value: operand } as NumberNode : node;
+        const candidateRight = swapSides ? node : { type: 'number', value: operand } as NumberNode;
 
         const candidateNode: BinOpNode = {
             type: 'binop',
@@ -102,51 +102,113 @@ export function generateEquationForLevel(level: number): MathEquation {
 }
 
 /**
- * Analyzes an equation to find the CORRECT next action needed to simplify it based on our `applyMathAction` rules.
+ * Resolves the correct operation for a specific AST node.
+ */
+export function getCorrectActionForNode(node: MathNode): MathAction | null {
+    if (node.type !== 'binop') return null;
+
+    const staticLeft = tryEvaluateStatic(node.left);
+    const staticRight = tryEvaluateStatic(node.right);
+
+    // Case 1: static value is on the right (e.g., X + 3, X - 3, X * 3, X / 3)
+    if (staticRight !== null) {
+        let op: Operator = '+';
+        switch (node.operator) {
+            case '+': op = '-'; break;
+            case '-': op = '+'; break;
+            case '*': op = '/'; break;
+            case '/': op = '*'; break;
+        }
+        return { operator: op, operand: staticRight };
+    }
+
+    // Case 2: static value is on the left (e.g., 3 + X, 3 - X, 3 * X, 3 / X)
+    if (staticLeft !== null) {
+        // Commutative addition and multiplication behave standardly
+        if (node.operator === '+') {
+            return { operator: '-', operand: staticLeft };
+        }
+        if (node.operator === '*') {
+            return { operator: '/', operand: staticLeft };
+        }
+        // Non-commutative subtraction and division require a Left-Hand Action
+        // e.g. 10 - X = 6 -> X = 10 - 6 (action is "10 -")
+        if (node.operator === '-' || node.operator === '/') {
+            return { operator: node.operator, operand: staticLeft, isLeftHand: true };
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Analyzes an equation to find the CORRECT next action needed to simplify it.
  */
 export function getCorrectAction(eq: MathEquation): MathAction | null {
-    const left = eq.left;
-    if (left.type !== 'binop') return null;
+    return getCorrectActionForNode(eq.left);
+}
 
-    // Inverse of the outermost operation.
-    let op: Operator = '+';
-    switch (left.operator) {
-        case '+': op = '-'; break;
-        case '-': op = '+'; break;
-        case '*': op = '/'; break;
-        case '/': op = '*'; break;
+/**
+ * Traverses the AST below the root and extracts correct actions of nested operations
+ * to serve as priority trap decoys (distractors).
+ */
+export function getIncorrectPriorityActions(node: MathNode): MathAction[] {
+    const actions: MathAction[] = [];
+
+    function traverse(currentNode: MathNode) {
+        if (currentNode.type !== 'binop') return;
+
+        const action = getCorrectActionForNode(currentNode);
+        if (action) {
+            actions.push(action);
+        }
+
+        // Search deeper
+        traverse(currentNode.left);
+        traverse(currentNode.right);
     }
 
-    // Find the operand
-    let operand = 0;
-    if (left.right.type === 'number') {
-        operand = left.right.value;
-    } else if (left.left.type === 'number') {
-        operand = left.left.value;
-    } else {
-        // In a well-formed tree for this game, one side of a binop is always static until solved.
-        // E.g. (□+2) * 3 -> right is NumberNode(3).
-        // Let's use tryEvaluateStatic if it's not a direct NumberNode but evaluable.
-        // (Skipping for this MVP as our generator always binds a NumberNode directly)
-        return null;
+    // Start traversal on child nodes to exclude the root operation (which is correct)
+    if (node.type === 'binop') {
+        traverse(node.left);
+        traverse(node.right);
     }
 
-    return { operator: op, operand };
+    return actions;
 }
 
 /**
  * Generates the correct action and 3 dummy actions.
+ * If level > 3, it inserts intermediate nested operations as priority trap decoys.
  */
-export function generateActionChoices(eq: MathEquation): MathAction[] {
+export function generateActionChoices(eq: MathEquation, level: number): MathAction[] {
     const correct = getCorrectAction(eq);
     if (!correct) return []; // Equation is already solved or malformed
 
     const choices: MathAction[] = [correct];
+
+    // For Level 4 and above, inject incorrect priority actions (inner operations) as decoys
+    if (level > 3) {
+        const decoys = getIncorrectPriorityActions(eq.left);
+        for (const decoy of decoys) {
+            if (choices.length >= 4) break;
+            
+            // Check uniqueness
+            const isDuplicate = choices.some(c => 
+                c.operator === decoy.operator && 
+                c.operand === decoy.operand && 
+                c.isLeftHand === decoy.isLeftHand
+            );
+            if (!isDuplicate) {
+                choices.push(decoy);
+            }
+        }
+    }
+
     const operators: Operator[] = ['+', '-', '*', '/'];
 
     while (choices.length < 4) {
         const rOp = randomItem(operators);
-        // Perturb the correct operand slightly, or pick a random small one
         const rOpndOffset = randomInt(-2, 2);
         let rOpnd = Math.max(1, correct.operand + rOpndOffset);
 
@@ -155,10 +217,20 @@ export function generateActionChoices(eq: MathEquation): MathAction[] {
             rOpnd = randomInt(2, 10);
         }
 
-        const candidate: MathAction = { operator: rOp, operand: rOpnd };
+        // Randomly assign left-hand flag for non-commutative operators to diversify choices
+        const rIsLeftHand = (rOp === '-' || rOp === '/') && Math.random() > 0.4;
+        const candidate: MathAction = { 
+            operator: rOp, 
+            operand: rOpnd,
+            isLeftHand: rIsLeftHand
+        };
 
         // Ensure uniqueness
-        const isDuplicate = choices.some(c => c.operator === candidate.operator && c.operand === candidate.operand);
+        const isDuplicate = choices.some(c => 
+            c.operator === candidate.operator && 
+            c.operand === candidate.operand &&
+            c.isLeftHand === candidate.isLeftHand
+        );
         if (!isDuplicate) {
             choices.push(candidate);
         }
