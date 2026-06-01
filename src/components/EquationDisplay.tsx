@@ -18,10 +18,11 @@ function renderNode(node: MathNode, isRoot: boolean = true, depth: number = 0): 
         return (
             <motion.span
                 key={`num-${node.value}-${depth}`}
-                className="font-mono text-slate-100"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: depth * 0.05 }}
+                layout
+                className="font-mono text-slate-100 inline-block"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
             >
                 {node.value}
             </motion.span>
@@ -30,6 +31,8 @@ function renderNode(node: MathNode, isRoot: boolean = true, depth: number = 0): 
     if (node.type === 'variable') {
         return (
             <motion.span
+                key="var-□"
+                layout
                 className="text-emerald-400 font-black bg-emerald-900/30 px-2.5 py-0.5 rounded-lg border-2 border-emerald-500/40 mx-1 inline-block"
                 animate={{
                     boxShadow: [
@@ -50,29 +53,35 @@ function renderNode(node: MathNode, isRoot: boolean = true, depth: number = 0): 
         const content = (
             <>
                 {renderNode(node.left, false, depth + 1)}
-                <span className="text-teal-400 mx-2 font-bold">{opStr}</span>
+                <motion.span 
+                    layout 
+                    key={`op-${node.operator}-${depth}`} 
+                    className="text-teal-400 mx-2 font-bold inline-block"
+                >
+                    {opStr}
+                </motion.span>
                 {renderNode(node.right, false, depth + 1)}
             </>
         );
 
         return isRoot ? content : (
-            <span className="text-slate-400">
+            <motion.span 
+                layout 
+                key={`parens-${depth}`} 
+                className="text-slate-400 inline-block"
+            >
                 (<span className="text-slate-100">{content}</span>)
-            </span>
+            </motion.span>
         );
     }
     return null;
 }
 
 export function EquationDisplay({ equation, isCorrectHit }: EquationDisplayProps) {
-    // Generate a key from equation structure to trigger re-animation
-    const eqKey = JSON.stringify(equation);
-
     return (
         <motion.div
             className={`glass-dark px-6 py-5 rounded-2xl border-t border-t-white/20 flex items-center text-3xl font-bold tracking-wider relative overflow-hidden ${isCorrectHit ? 'animate-solve-burst' : ''}`}
             layout
-            key={eqKey}
             initial={{ opacity: 0.5, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
