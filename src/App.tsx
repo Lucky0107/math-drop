@@ -129,7 +129,11 @@ function App() {
 
     // Check if correct
     const correctAction = getCorrectAction(activeEquation);
-    if (correctAction && correctAction.operator === action.operator && correctAction.operand === action.operand) {
+    if (correctAction && 
+        correctAction.operator === action.operator && 
+        correctAction.operand === action.operand &&
+        !!correctAction.isLeftHand === !!action.isLeftHand) {
+      
       // Correct!
       setIsHitAnimating(true);
       const newCombo = combo + 1;
@@ -145,8 +149,11 @@ function App() {
       setTimeout(() => {
         const transformedEq = applyMathAction(activeEquation, action);
         if (transformedEq) {
-          if (transformedEq.left.type === 'variable') {
-            // Fully solved!
+          // Display the transformed equation (educational feedback)
+          setActiveEquation(transformedEq);
+
+          // After a short delay (1000ms) for the student to digest the transformation, spawn next equation
+          setTimeout(() => {
             setEquationsSolvedInLevel(prev => {
               const newCount = prev + 1;
               const needed = Math.min(3 + Math.floor(level / 3), 5);
@@ -163,19 +170,14 @@ function App() {
                 setHintIndex(null);
                 setTimeout(() => startHintTimer(nextChoices, nextEq), 100);
               }
+              setIsHitAnimating(false);
               return newCount;
             });
-          } else {
-            // More steps to go
-            setActiveEquation(transformedEq);
-            const nextChoices = generateActionChoices(transformedEq, level);
-            setChoices(nextChoices);
-            setHintIndex(null);
-            setTimeout(() => startHintTimer(nextChoices, transformedEq), 100);
-          }
+          }, 1000);
+        } else {
+          setIsHitAnimating(false);
         }
-        setIsHitAnimating(false);
-      }, 500);
+      }, 500); // Wait for hit animation (shooting duration)
     } else {
       // Wrong answer
       setCombo(0);
