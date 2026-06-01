@@ -39,7 +39,7 @@ function generateTree(steps: number, level: number): MathEquation {
         attempts++;
 
         // Pick an operator
-        let operators: Operator[] = ['+', '-'];
+        const operators: Operator[] = ['+', '-'];
         if (level >= 2) operators.push('*');
         if (level >= 3) operators.push('/');
 
