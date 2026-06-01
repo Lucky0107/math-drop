@@ -17,7 +17,7 @@ function App() {
   const [gameState, setGameState] = useState<GameState>('start');
   const [gameMode, setGameMode] = useState<GameMode>('modeA');
   const [level, setLevel] = useState(1);
-  const [maxUnlockedLevel, setMaxUnlockedLevel] = useState(1);
+  const [maxUnlockedLevel, setMaxUnlockedLevel] = useState(10);
   const [score, setScore] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(60);
 
