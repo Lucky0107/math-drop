@@ -5,6 +5,7 @@ interface ChoicesBarProps {
     onSelect: (action: MathAction) => void;
     disabled?: boolean;
     hintIndex?: number | null;
+    targetValue: number;
 }
 
 const OP_DISPLAY: Record<string, string> = {
@@ -21,7 +22,7 @@ const OP_COLORS: Record<string, string> = {
     '/': 'text-blue-400',
 };
 
-export function ChoicesBar({ choices, onSelect, disabled, hintIndex }: ChoicesBarProps) {
+export function ChoicesBar({ choices, onSelect, disabled, hintIndex, targetValue }: ChoicesBarProps) {
     return (
         <div className="px-4 pb-6 pt-2 z-20">
             <div className="grid grid-cols-4 gap-2">
@@ -45,11 +46,12 @@ export function ChoicesBar({ choices, onSelect, disabled, hintIndex }: ChoicesBa
                                         <span className={`${OP_COLORS[choice.operator] || 'text-teal-400'} mx-1`}>
                                             {OP_DISPLAY[choice.operator] || choice.operator}
                                         </span>
-                                        <span className="text-slate-400 font-normal">[ ]</span>
+                                        <span className="text-slate-100">{targetValue}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <span className={`${OP_COLORS[choice.operator] || 'text-teal-400'} mr-1`}>
+                                        <span className="text-slate-100">{targetValue}</span>
+                                        <span className={`${OP_COLORS[choice.operator] || 'text-teal-400'} mx-1`}>
                                             {OP_DISPLAY[choice.operator] || choice.operator}
                                         </span>
                                         <span className="text-slate-100">{choice.operand}</span>

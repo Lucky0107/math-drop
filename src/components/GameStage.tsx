@@ -1,3 +1,4 @@
+import { tryEvaluateStatic } from '../lib/mathEngine';
 import type { MathEquation, MathAction } from '../lib/mathEngine';
 import { EquationDisplay } from './EquationDisplay';
 import { ChoicesBar } from './ChoicesBar';
@@ -34,6 +35,7 @@ export function GameStage({
     equationsNeeded,
 }: GameStageProps) {
 
+    const targetValue = tryEvaluateStatic(activeEquation.right) ?? 0;
     const timePct = Math.max(0, (timeRemaining / (level * 10 + 30)) * 100);
     const isTimeLow = timeRemaining <= 10;
 
@@ -119,6 +121,7 @@ export function GameStage({
                 onSelect={onActionSelect}
                 disabled={isHitAnimating}
                 hintIndex={hintIndex}
+                targetValue={targetValue}
             />
         </div>
     );
