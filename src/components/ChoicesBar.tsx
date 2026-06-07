@@ -42,9 +42,10 @@ export function ChoicesBar({ choices, onSelect, disabled, hintIndex }: ChoicesBa
                                 {choice.isLeftHand ? (
                                     <>
                                         <span className="text-slate-100">{choice.operand}</span>
-                                        <span className={`${OP_COLORS[choice.operator] || 'text-teal-400'} ml-1`}>
+                                        <span className={`${OP_COLORS[choice.operator] || 'text-teal-400'} mx-1`}>
                                             {OP_DISPLAY[choice.operator] || choice.operator}
                                         </span>
+                                        <span className="text-slate-400 font-normal">[ ]</span>
                                     </>
                                 ) : (
                                     <>
